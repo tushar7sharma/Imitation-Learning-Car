@@ -16,7 +16,29 @@ def load_imitations(data_folder):
     observations:   python list of N numpy.ndarrays of size (96, 96, 3)
     actions:        python list of N numpy.ndarrays of size 3
     """
-    pass
+    
+    observations = []
+    actions = []
+    actionFileNames = []
+    observationFileNames = []
+    
+    # sort all file names
+    for fileName in os.listdir(data_folder):
+        if fileName.startswith("action"):
+            actionFileNames.append(fileName)
+        elif fileName.startswith("observation"):
+            observationFileNames.append(fileName)
+
+    # so we get the action and obs for same entry
+    actionFileNames.sort()
+    observationFileNames.sort()
+
+    for i in range(len(actionFileNames)):
+        actions.append(np.load(data_folder + actionFileNames[i]))
+        observations.append(np.load(data_folder + observationFileNames[i]))
+
+    return observations , actions
+
 
 
 def save_imitations(data_folder, actions, observations):

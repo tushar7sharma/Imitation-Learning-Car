@@ -10,6 +10,8 @@ def train(data_folder, trained_network_file):
     Function for training the network.
     """
     infer_action = ClassificationNetwork()
+    # may need
+    # infer_action.cuda()
     optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-2)
     observations, actions = load_imitations(data_folder)
     observations = [torch.Tensor(observation) for observation in observations]

@@ -22,6 +22,7 @@ class ClassificationNetwork(torch.nn.Module):
         """
         pass
 
+
     def actions_to_classes(self, actions):
         """
         1.1 c)
@@ -33,7 +34,27 @@ class ClassificationNetwork(torch.nn.Module):
         actions:        python list of N torch.Tensors of size 3
         return          python list of N torch.Tensors of size number_of_classes
         """
-        pass
+
+        # 9 classes of actions
+        number_of_classes = 9
+        actionMap = {
+            (0.0, 0.0, 0.0): 0,
+            (0.0, 0.5, 0.0): 1,
+            (-1.0, 0.5, 0.0): 2,
+            (-1.0, 0.0, 0.0): 3,
+            (-1.0, 0.0, 0.8): 4,
+            (0.0, 0.0, 0.8): 5,
+            (1.0, 0.0, 0.8): 6,
+            (1.0, 0.0, 0.0): 7,
+            (1.0, 0.5, 0.0): 8
+        }
+        res = []
+        for action in actions:
+            pos = actionMap[ tuple(action) ]
+            oneHotVector = torch.zeros(number_of_classes, dtype=torch.int8)
+            oneHotVector[pos] = 1
+            res.append(oneHotVector)
+        return res
 
     def scores_to_action(self, scores):
         """
