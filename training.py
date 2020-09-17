@@ -17,11 +17,12 @@ def train(data_folder, trained_network_file):
 
     batches = [batch for batch in zip(observations,
                                       infer_action.actions_to_classes(actions))]
-    gpu = torch.device('cuda')
+    
+    gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    nr_epochs = 100
+    nr_epochs = 20 #orig=100
     batch_size = 64
-    number_of_classes = 0  # needs to be changed
+    number_of_classes = 9  # needs to be changed
     start_time = time.time()
 
     for epoch in range(nr_epochs):
@@ -67,4 +68,5 @@ def cross_entropy_loss(batch_out, batch_gt):
     batch_gt:       torch.Tensor of size (batch_size, number_of_classes)
     return          float
     """
-    pass
+    loss = torch.nn.CrossEntropyLoss()
+    return loss(batch_out, torch.max(batch_gt, 1)[1])

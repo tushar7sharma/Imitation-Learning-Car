@@ -1,5 +1,8 @@
 import torch
-
+import torch.nn as nn
+import numpy as np
+from torch.nn import Conv2d, functional as F, Linear, MaxPool2d, Module
+import cv2
 
 class ClassificationNetwork(torch.nn.Module):
     def __init__(self):
@@ -9,7 +12,14 @@ class ClassificationNetwork(torch.nn.Module):
         observations is 96x96 pixels.
         """
         super().__init__()
-        gpu = torch.device('cuda')
+        gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.values = []
+        
+        self.conv = Conv2d(3, 18, kernel_size=3, stride=1, padding=1)
+        self.pool = MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.fc1 = Linear(18 * 48 * 48, 64)
+        self.fc2 = Linear(64, 9)
+
 
 
     def forward(self, observation):
@@ -20,7 +30,24 @@ class ClassificationNetwork(torch.nn.Module):
         observation:   torch.Tensor of size (batch_size, 96, 96, 3)
         return         torch.Tensor of size (batch_size, number_of_classes)
         """
-        pass
+        
+        x = observation
+        x = x.permute(0,3,1,2)
+#        print(x.shape)
+        x = F.relu(self.conv(x))
+#        print(x.shape)
+        x = self.pool(x)
+#        print(x.shape)
+        x = x.view(-1, 18 * 48 * 48)
+#        print(x.shape)
+        x = F.relu(self.fc1(x))
+#        print(x.shape)
+        x = self.fc2(x)
+#        print(x.shape)
+        
+#        print(x)
+        return x
+
 
     def actions_to_classes(self, actions):
         """
@@ -33,7 +60,19 @@ class ClassificationNetwork(torch.nn.Module):
         actions:        python list of N torch.Tensors of size 3
         return          python list of N torch.Tensors of size number_of_classes
         """
-        pass
+        
+        actions_np = []
+        for i in actions:
+            actions_np.append(i.numpy())
+        
+        self.values, inverse = np.unique(actions_np, return_inverse=True, axis=0)
+        onehot = np.eye(self.values.shape[0])[inverse]
+        
+        onehot_tensors = []
+        for k in onehot:
+            onehot_tensors.append(torch.from_numpy(k))
+            
+        return onehot_tensors
 
     def scores_to_action(self, scores):
         """
@@ -43,7 +82,14 @@ class ClassificationNetwork(torch.nn.Module):
         scores:         python list of torch.Tensors of size number_of_classes
         return          (float, float, float)
         """
-        pass
+        
+        print(scores)
+        pred = scores.argmax(dim=1, keepdim=True)
+        print(pred)
+        
+        print(self.values[pred[0][0]])
+        class_label = self.values[pred[0][0]]
+        return class_label
 
     def extract_sensor_values(self, observation, batch_size):
         """

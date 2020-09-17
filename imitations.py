@@ -2,7 +2,7 @@ import os
 import numpy as np
 import gym
 from pyglet.window import key
-
+import glob
 
 def load_imitations(data_folder):
     """
@@ -16,7 +16,20 @@ def load_imitations(data_folder):
     observations:   python list of N numpy.ndarrays of size (96, 96, 3)
     actions:        python list of N numpy.ndarrays of size 3
     """
-    pass
+    data_folder = '/Users/tusharsharma/Desktop/EC500/HW-1/01_imitation/data/teacher'
+    observations_files = glob.glob(os.path.join(data_folder, 'observation*.npy'))
+    actions_files = glob.glob(os.path.join(data_folder, 'action*.npy'))
+    
+    observations = []
+    actions = []
+    
+    for path in observations_files:
+        observations.append(np.load(path))
+        
+    for path in actions_files:
+        actions.append(np.load(path))
+        
+    return observations, actions
 
 
 def save_imitations(data_folder, actions, observations):
