@@ -13,13 +13,12 @@ class ClassificationNetwork(torch.nn.Module):
         """
         super().__init__()
 
-        self.conv1 = nn.Conv2d(3,18,kernel_size=3,stride=1,padding=1)
-        self.pool1 = nn.MaxPool2d(kernel_size=2,stride=2)
-        self.conv2 = nn.Conv2d(18,24,kernel_size=3,stride=1,padding=1)
-        self.pool2 = nn.MaxPool2d(kernel_size=2,stride=2)
-        self.dense1 = nn.Linear(24*24*24,64)
-        self.dense2 = nn.Linear(64,9)
-        
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=4,stride=2)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=4,stride=2)
+        self.conv2_drop = nn.Dropout2d()
+        self.pool = nn.MaxPool2d(kernel_size=2)
+        self.fc1 = nn.Linear(64*5*5, 512)
+        self.fc2 = nn.Linear(512, 9)
 
 
     def forward(self, observation):
@@ -32,13 +31,13 @@ class ClassificationNetwork(torch.nn.Module):
         """
         x = observation
         x = x.permute(0,3,1,2)
-        x = F.relu(self.conv1(x))
-        x = self.pool1(x)
-        x = F.relu(self.conv2(x))
-        x = self.pool2(x)
-        x = x.reshape(-1,24*24*24)
-        x = F.relu(self.dense1(x))
-        x = F.softmax(self.dense2(x))
+        x = F.relu(self.pool(self.conv1(x)))
+        x = F.relu(self.pool(self.conv2_drop(self.conv2(x))))
+        #print(x.shape)
+        x = x.reshape(x.shape[0],-1)
+        x = F.relu(self.fc1(x))
+#        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
         return x
              
 
@@ -56,8 +55,9 @@ class ClassificationNetwork(torch.nn.Module):
         actions_np = []
         for i in actions:
             actions_np.append(i.numpy())
-        self.values, inverse = np.unique(actions_np ,return_inverse=True, axis=0)
+        self.values, inverse,count = np.unique(actions_np ,return_inverse=True, return_counts=True, axis=0)
         onehot = np.eye(self.values.shape[0])[inverse]
+        print(count)
         
         class_tensor=[]
         for item in onehot:
@@ -74,11 +74,11 @@ class ClassificationNetwork(torch.nn.Module):
         return          (float, float, float)
         """
         
-        print(scores)
+        #print(scores)
         preds = torch.argmax(scores,dim=1)
-        print(preds.shape)
+        #print(preds.shape)
         class_labels = self.values[preds]
-        print(class_labels)
+        #print(class_labels)
         
         return class_labels
         

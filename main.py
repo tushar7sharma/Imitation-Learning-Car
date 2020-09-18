@@ -8,7 +8,7 @@ from training import train
 from imitations import record_imitations
 
 directory = ""  ######## change that! ########
-trained_network_file = os.path.join(directory, 'data/train.t7')
+trained_network_file = os.path.join(directory, 'data/train_sallu.t7')
 imitations_folder = os.path.join(directory, 'data/teacher')
 
 

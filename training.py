@@ -13,7 +13,7 @@ def train(data_folder, trained_network_file):
     """
     gpu = torch.device('cuda')
     infer_action = ClassificationNetwork().to(gpu)
-    optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-2)
+    optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-3)
     observations, actions = load_imitations(data_folder)
     observations = [torch.Tensor(observation) for observation in observations]
     actions = [torch.Tensor(action) for action in actions]
@@ -21,8 +21,8 @@ def train(data_folder, trained_network_file):
     batches = [batch for batch in zip(observations,
                                       infer_action.actions_to_classes(actions))]
     
-    nr_epochs = 100
-    batch_size = 64
+    nr_epochs = 200
+    batch_size = 32
     number_of_classes = 9  # needs to be changed
     start_time = time.time()
     
@@ -72,7 +72,7 @@ def cross_entropy_loss(batch_out, batch_gt):
     return          float
     """
     #print(f'Shape of ground truth: {batch_gt.shape} | shape of preds = {batch_out.shape}')
-    print(batch_out[0])
+    #print(batch_out[0])
 #    print(batch_gt[0])
     loss_f = nn.CrossEntropyLoss()
     #loss = loss_f(batch_gt,torch.argmax(batch_out,dim=0)[0])
