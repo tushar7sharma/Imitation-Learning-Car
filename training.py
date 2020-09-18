@@ -3,13 +3,16 @@ import random
 import time
 from network import ClassificationNetwork
 from imitations import load_imitations
+import torch.nn as nn
+import tqdm
 
 
 def train(data_folder, trained_network_file):
     """
     Function for training the network.
     """
-    infer_action = ClassificationNetwork()
+    gpu = torch.device('cuda')
+    infer_action = ClassificationNetwork().to(gpu)
     optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-2)
     observations, actions = load_imitations(data_folder)
     observations = [torch.Tensor(observation) for observation in observations]
@@ -17,16 +20,16 @@ def train(data_folder, trained_network_file):
 
     batches = [batch for batch in zip(observations,
                                       infer_action.actions_to_classes(actions))]
-    gpu = torch.device('cuda')
-
+    
     nr_epochs = 100
     batch_size = 64
-    number_of_classes = 0  # needs to be changed
+    number_of_classes = 9  # needs to be changed
     start_time = time.time()
-
+    
     for epoch in range(nr_epochs):
+        
         random.shuffle(batches)
-
+        
         total_loss = 0
         batch_in = []
         batch_gt = []
@@ -41,6 +44,7 @@ def train(data_folder, trained_network_file):
                                          (-1, number_of_classes))
 
                 batch_out = infer_action(batch_in)
+                #print(batch_out.shape)
                 loss = cross_entropy_loss(batch_out, batch_gt)
 
                 optimizer.zero_grad()
@@ -67,4 +71,11 @@ def cross_entropy_loss(batch_out, batch_gt):
     batch_gt:       torch.Tensor of size (batch_size, number_of_classes)
     return          float
     """
-    pass
+    #print(f'Shape of ground truth: {batch_gt.shape} | shape of preds = {batch_out.shape}')
+    print(batch_out[0])
+#    print(batch_gt[0])
+    loss_f = nn.CrossEntropyLoss()
+    #loss = loss_f(batch_gt,torch.argmax(batch_out,dim=0)[0])
+    loss =  loss_f(batch_out, torch.max(batch_gt, 1)[1])
+    #print(loss)
+    return loss

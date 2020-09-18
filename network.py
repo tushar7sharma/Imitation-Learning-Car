@@ -1,4 +1,7 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
 
 
 class ClassificationNetwork(torch.nn.Module):
@@ -9,7 +12,14 @@ class ClassificationNetwork(torch.nn.Module):
         observations is 96x96 pixels.
         """
         super().__init__()
-        gpu = torch.device('cuda')
+
+        self.conv1 = nn.Conv2d(3,18,kernel_size=3,stride=1,padding=1)
+        self.pool1 = nn.MaxPool2d(kernel_size=2,stride=2)
+        self.conv2 = nn.Conv2d(18,24,kernel_size=3,stride=1,padding=1)
+        self.pool2 = nn.MaxPool2d(kernel_size=2,stride=2)
+        self.dense1 = nn.Linear(24*24*24,64)
+        self.dense2 = nn.Linear(64,9)
+        
 
 
     def forward(self, observation):
@@ -20,7 +30,17 @@ class ClassificationNetwork(torch.nn.Module):
         observation:   torch.Tensor of size (batch_size, 96, 96, 3)
         return         torch.Tensor of size (batch_size, number_of_classes)
         """
-        pass
+        x = observation
+        x = x.permute(0,3,1,2)
+        x = F.relu(self.conv1(x))
+        x = self.pool1(x)
+        x = F.relu(self.conv2(x))
+        x = self.pool2(x)
+        x = x.reshape(-1,24*24*24)
+        x = F.relu(self.dense1(x))
+        x = F.softmax(self.dense2(x))
+        return x
+             
 
     def actions_to_classes(self, actions):
         """
@@ -33,7 +53,17 @@ class ClassificationNetwork(torch.nn.Module):
         actions:        python list of N torch.Tensors of size 3
         return          python list of N torch.Tensors of size number_of_classes
         """
-        pass
+        actions_np = []
+        for i in actions:
+            actions_np.append(i.numpy())
+        self.values, inverse = np.unique(actions_np ,return_inverse=True, axis=0)
+        onehot = np.eye(self.values.shape[0])[inverse]
+        
+        class_tensor=[]
+        for item in onehot:
+            class_tensor.append(torch.tensor(item,dtype=torch.float32))
+            
+        return class_tensor
 
     def scores_to_action(self, scores):
         """
@@ -43,7 +73,15 @@ class ClassificationNetwork(torch.nn.Module):
         scores:         python list of torch.Tensors of size number_of_classes
         return          (float, float, float)
         """
-        pass
+        
+        print(scores)
+        preds = torch.argmax(scores,dim=1)
+        print(preds.shape)
+        class_labels = self.values[preds]
+        print(class_labels)
+        
+        return class_labels
+        
 
     def extract_sensor_values(self, observation, batch_size):
         """

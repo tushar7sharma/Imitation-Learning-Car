@@ -15,11 +15,12 @@ imitations_folder = os.path.join(directory, 'data/teacher')
 def evaluate():
     """
     """
-    infer_action = torch.load(trained_network_file, map_location='cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    infer_action = torch.load(trained_network_file)
     infer_action.eval()
     env = gym.make('CarRacing-v0')
     # you can set it to torch.device('cuda') in case you have a gpu
-    device = torch.device('cpu')
+    device = torch.device(device)
     infer_action = infer_action.to(device)
 
 
@@ -45,11 +46,12 @@ def calculate_score_for_leaderboard():
     the final ranking on the course-wide leader-board, only with a different set
     of seeds. Better not change it.
     """
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     infer_action = torch.load(trained_network_file, map_location='cpu')
     infer_action.eval()
     env = gym.make('CarRacing-v0')
     # you can set it to torch.device('cuda') in case you have a gpu
-    device = torch.device('cpu')
+    device = torch.device(device)
 
     seeds = [22597174, 68545857, 75568192, 91140053, 86018367,
              49636746, 66759182, 91294619, 84274995, 31531469]
