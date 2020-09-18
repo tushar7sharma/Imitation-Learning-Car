@@ -15,10 +15,17 @@ class ClassificationNetwork(torch.nn.Module):
         gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.values = []
         
-        self.conv = Conv2d(3, 18, kernel_size=3, stride=1, padding=1)
-        self.pool = MaxPool2d(kernel_size=2, stride=2, padding=0)
-        self.fc1 = Linear(18 * 48 * 48, 64)
-        self.fc2 = Linear(64, 9)
+#        self.conv = Conv2d(3, 18, kernel_size=3, stride=1, padding=1)
+#        self.pool = MaxPool2d(kernel_size=2, stride=2, padding=0)
+#        self.fc1 = Linear(18 * 48 * 48, 64)
+#        self.fc2 = Linear(64, 9)
+        
+        
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=10, kernel_size=3)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=3)
+        self.conv2_drop = nn.Dropout2d()
+        self.fc1 = nn.Linear(9680, 1024)
+        self.fc2 = nn.Linear(1024, 9)
 
 
 
@@ -30,22 +37,35 @@ class ClassificationNetwork(torch.nn.Module):
         observation:   torch.Tensor of size (batch_size, 96, 96, 3)
         return         torch.Tensor of size (batch_size, number_of_classes)
         """
-        
+        print(observation.shape)
         x = observation
         x = x.permute(0,3,1,2)
-#        print(x.shape)
-        x = F.relu(self.conv(x))
-#        print(x.shape)
-        x = self.pool(x)
-#        print(x.shape)
-        x = x.view(-1, 18 * 48 * 48)
-#        print(x.shape)
+        print(x.shape)
+##        print(x.shape)
+#        x = F.relu(self.conv(x))
+##        print(x.shape)
+#        x = self.pool(x)
+##        print(x.shape)
+#        x = x.view(-1, 18 * 48 * 48)
+##        print(x.shape)
+#        x = F.relu(self.fc1(x))
+##        print(x.shape)
+#        x = self.fc2(x)
+##        print(x.shape)
+        
+        
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+        x = x.view(x.shape[0],-1)
         x = F.relu(self.fc1(x))
-#        print(x.shape)
+#        x = F.dropout(x, training=self.training)
         x = self.fc2(x)
-#        print(x.shape)
+        
+        if not self.training:
+            x = F.softmax(x, dim=1)
         
 #        print(x)
+#        1
         return x
 
 

@@ -20,7 +20,7 @@ def train(data_folder, trained_network_file):
     
     gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    nr_epochs = 20 #orig=100
+    nr_epochs = 15 #orig=100
     batch_size = 64
     number_of_classes = 9  # needs to be changed
     start_time = time.time()
