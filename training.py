@@ -13,17 +13,19 @@ def train(data_folder, trained_network_file):
     """
     gpu = torch.device('cuda')
     infer_action = ClassificationNetwork().to(gpu)
-    optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-4)  #-4
     observations, actions = load_imitations(data_folder)
+    #print(len(actions))
+    #print(len(observations))
     observations = [torch.Tensor(observation) for observation in observations]
     actions = [torch.Tensor(action) for action in actions]
 
     batches = [batch for batch in zip(observations,
                                       infer_action.actions_to_classes(actions))]
     
-    nr_epochs = 200
-    batch_size = 32
-    number_of_classes = 9  # needs to be changed
+    nr_epochs = 300 # 400
+    batch_size = 64
+    number_of_classes = 10 # needs to be changed
     start_time = time.time()
     
     for epoch in range(nr_epochs):
@@ -40,6 +42,8 @@ def train(data_folder, trained_network_file):
             if (batch_idx + 1) % batch_size == 0 or batch_idx == len(batches) - 1:
                 batch_in = torch.reshape(torch.cat(batch_in, dim=0),
                                          (-1, 96, 96, 3))
+                #print(number_of_classes)
+                #print(batch_gt)
                 batch_gt = torch.reshape(torch.cat(batch_gt, dim=0),
                                          (-1, number_of_classes))
 
@@ -54,13 +58,16 @@ def train(data_folder, trained_network_file):
 
                 batch_in = []
                 batch_gt = []
-
+                
         time_per_epoch = (time.time() - start_time) / (epoch + 1)
         time_left = (1.0 * time_per_epoch) * (nr_epochs - 1 - epoch)
         print("Epoch %5d\t[Train]\tloss: %.6f \tETA: +%fs" % (
             epoch + 1, total_loss, time_left))
+        
+        if epoch%30==0:
+            torch.save(infer_action, trained_network_file)
 
-    torch.save(infer_action, trained_network_file)
+    #torch.save(infer_action, trained_network_file)
 
 
 def cross_entropy_loss(batch_out, batch_gt):

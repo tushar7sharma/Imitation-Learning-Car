@@ -7,9 +7,9 @@ import gym
 from training import train
 from imitations import record_imitations
 
-directory = ""  ######## change that! ########
-trained_network_file = os.path.join(directory, 'data/train_sallu.t7')
-imitations_folder = os.path.join(directory, 'data/teacher')
+directory = "/home/shoumik/Desktop/EC500/HW1/Shoumik_imitation"
+trained_network_file = os.path.join(directory, 'data/train_version4.t7')
+imitations_folder = os.path.join(directory, 'data/bhasad')
 
 
 def evaluate():
@@ -24,7 +24,7 @@ def evaluate():
     infer_action = infer_action.to(device)
 
 
-    for episode in range(5):
+    for episode in range(10):
         observation = env.reset()
 
         reward_per_episode = 0

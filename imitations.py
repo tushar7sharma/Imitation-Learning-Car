@@ -16,7 +16,7 @@ def load_imitations(data_folder):
     observations:   python list of N numpy.ndarrays of size (96, 96, 3)
     actions:        python list of N numpy.ndarrays of size 3
     """
-    data_folder = '/home/shoumik/Desktop/EC500/HW1/my_ver/data/teacher'
+    #data_folder = '/home/shoumik/Desktop/EC500/HW1/Shoumik_imitation/data/slow'
     actions_path = glob.glob(os.path.join(data_folder,'action' + '*.npy'))
     obs_path = glob.glob(os.path.join(data_folder,'observation*.npy'))
     
