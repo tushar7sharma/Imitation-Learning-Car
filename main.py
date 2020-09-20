@@ -7,9 +7,12 @@ import gym
 from training import train
 from imitations import record_imitations
 
-directory = "/home/shoumik/Desktop/EC500/HW1/Shoumik_imitation"
-trained_network_file = os.path.join(directory, 'data/train_version4.t7')
-imitations_folder = os.path.join(directory, 'data/bhasad')
+
+directory = "/Users/tusharsharma/Desktop/EC500/HW-1/01_imitation"
+trained_network_file = os.path.join(directory, 'data/train.t7')
+#imitations_folder = os.path.join(directory, 'data/teacher')
+
+imitations_folder = '/Users/tusharsharma/Desktop/good_driver'
 
 
 def evaluate():

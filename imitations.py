@@ -3,6 +3,9 @@ import numpy as np
 import gym
 from pyglet.window import key
 import glob
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 def load_imitations(data_folder):
     """
@@ -17,8 +20,12 @@ def load_imitations(data_folder):
     actions:        python list of N numpy.ndarrays of size 3
     """
     #data_folder = '/home/shoumik/Desktop/EC500/HW1/Shoumik_imitation/data/slow'
+    
+#    data_folder = "/Users/tusharsharma/Desktop/EC500/HW-1/01_imitation/data/teacher"
     actions_path = glob.glob(os.path.join(data_folder,'action' + '*.npy'))
     obs_path = glob.glob(os.path.join(data_folder,'observation*.npy'))
+    
+    
     
     
     obs_path.sort()
@@ -32,6 +39,7 @@ def load_imitations(data_folder):
     
     for act in actions_path:
         actions.append(np.load(act))
+
         
     return observations,actions
 

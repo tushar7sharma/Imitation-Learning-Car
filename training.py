@@ -1,7 +1,7 @@
 import torch
 import random
 import time
-from network import ClassificationNetwork
+from multi_network import ClassificationNetwork
 from imitations import load_imitations
 import torch.nn as nn
 import tqdm
@@ -11,21 +11,22 @@ def train(data_folder, trained_network_file):
     """
     Function for training the network.
     """
-    gpu = torch.device('cuda')
+    gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     infer_action = ClassificationNetwork().to(gpu)
     optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-4)  #-4
+    print(data_folder)
     observations, actions = load_imitations(data_folder)
-    #print(len(actions))
-    #print(len(observations))
+    print(len(actions))
+    print(len(observations))
     observations = [torch.Tensor(observation) for observation in observations]
     actions = [torch.Tensor(action) for action in actions]
 
     batches = [batch for batch in zip(observations,
                                       infer_action.actions_to_classes(actions))]
     
-    nr_epochs = 300 # 400
+    nr_epochs = 100 # 400
     batch_size = 64
-    number_of_classes = 10 # needs to be changed
+    number_of_classes = 4 # needs to be changed
     start_time = time.time()
     
     for epoch in range(nr_epochs):
@@ -81,8 +82,9 @@ def cross_entropy_loss(batch_out, batch_gt):
     #print(f'Shape of ground truth: {batch_gt.shape} | shape of preds = {batch_out.shape}')
     #print(batch_out[0])
 #    print(batch_gt[0])
-    loss_f = nn.CrossEntropyLoss()
+        
+    loss_f = nn.BCEWithLogitsLoss()
     #loss = loss_f(batch_gt,torch.argmax(batch_out,dim=0)[0])
-    loss =  loss_f(batch_out, torch.max(batch_gt, 1)[1])
+    loss =  loss_f(batch_out, batch_gt)
     #print(loss)
     return loss

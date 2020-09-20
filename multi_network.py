@@ -18,7 +18,7 @@ class ClassificationNetwork(torch.nn.Module):
         self.conv2_drop = nn.Dropout2d()
         self.pool = nn.MaxPool2d(kernel_size=2)
         self.fc1 = nn.Linear(64*5*5 + 1, 512)
-        self.fc2 = nn.Linear(512, 10)
+        self.fc2 = nn.Linear(512, 4)
 
 
     def forward(self, observation):
@@ -46,53 +46,15 @@ class ClassificationNetwork(torch.nn.Module):
         x = F.relu(self.fc1(x))
 #        x = F.dropout(x, training=self.training)
         x = self.fc2(x)
+        
+        if not self.training:
+            x = torch.sigmoid(x)
+        
         return x
-             
-
+                 
+    
+    
     def actions_to_classes(self, actions):
-        """
-        1.1 c)
-        For a given set of actions map every action to its corresponding
-        action-class representation. Assume there are number_of_classes
-        different classes, then every action is represented by a
-        number_of_classes-dim vector which has exactly one non-zero entry
-        (one-hot encoding). That index corresponds to the class number.
-        actions:        python list of N torch.Tensors of size 3
-        return          python list of N torch.Tensors of size number_of_classes
-        """
-        actions_np = []
-        for i in actions:
-            actions_np.append(i.numpy())
-        self.values, inverse,count = np.unique(actions_np ,return_inverse=True, return_counts=True, axis=0)
-        onehot = np.eye(self.values.shape[0])[inverse]
-        print(count)
-        
-        class_tensor=[]
-        for item in onehot:
-            class_tensor.append(torch.tensor(item,dtype=torch.float32))
-            
-        return class_tensor
-
-    def scores_to_action(self, scores):
-        """
-        1.1 c)
-        Maps the scores predicted by the network to an action-class and returns
-        the corresponding action [steer, gas, brake].
-        scores:         python list of torch.Tensors of size number_of_classes
-        return          (float, float, float)
-        """
-        
-        #print(scores)
-        preds = torch.argmax(scores,dim=1)
-        #print(preds.shape)
-        class_labels = self.values[preds]
-        #print(class_labels)
-        
-        return class_labels
-    
-    
-    
-    def actions_to_classes_multi(self, actions):
         """
         1.1 c)
         For a given set of actions map every action to its corresponding
@@ -118,7 +80,7 @@ class ClassificationNetwork(torch.nn.Module):
                 
             if(numpy_action[2] == 0.8):
                 item[3] = 1
-            actions_np.append()
+            actions_np.append(item)
             
         class_tensor=[]
         for item in actions_np:
@@ -126,7 +88,7 @@ class ClassificationNetwork(torch.nn.Module):
             
         return class_tensor
 
-    def scores_to_action_multi(self, scores):
+    def scores_to_action(self, scores):
         """
         1.1 c)
         Maps the scores predicted by the network to an action-class and returns
@@ -135,7 +97,10 @@ class ClassificationNetwork(torch.nn.Module):
         return          (float, float, float)
         """
         
-        numpy_value = scores.numpy()
+        torch.round(scores)
+    
+        numpy_value = scores.detach().numpy().flatten()
+        numpy_value = np.where(numpy_value > 0.5, 1, 0)
         
         action = np.zeros((3,))
         
@@ -151,6 +116,7 @@ class ClassificationNetwork(torch.nn.Module):
         
         if numpy_value[3] == 1:
             action[2] = 0.8
+            
             
         return action
         
