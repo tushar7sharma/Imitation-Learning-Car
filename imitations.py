@@ -2,7 +2,7 @@ import os
 import numpy as np
 import gym
 from pyglet.window import key
-
+import glob
 
 def load_imitations(data_folder):
     """
@@ -21,6 +21,9 @@ def load_imitations(data_folder):
     actions = []
     actionFileNames = []
     observationFileNames = []
+
+    if not data_folder.endswith('/'):
+        data_folder += '/'
     
     # sort all file names
     for fileName in os.listdir(data_folder):

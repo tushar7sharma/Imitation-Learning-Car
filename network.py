@@ -1,4 +1,7 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
 
 
 class ClassificationNetwork(torch.nn.Module):
@@ -9,7 +12,13 @@ class ClassificationNetwork(torch.nn.Module):
         observations is 96x96 pixels.
         """
         super().__init__()
-        gpu = torch.device('cuda')
+
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=4,stride=2)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=4,stride=2)
+        self.conv2_drop = nn.Dropout2d()
+        self.pool = nn.MaxPool2d(kernel_size=2)
+        self.fc1 = nn.Linear(64*5*5 , 512)
+        self.fc2 = nn.Linear(512, 9)
 
 
     def forward(self, observation):
@@ -20,7 +29,25 @@ class ClassificationNetwork(torch.nn.Module):
         observation:   torch.Tensor of size (batch_size, 96, 96, 3)
         return         torch.Tensor of size (batch_size, number_of_classes)
         """
-        pass
+        x = observation
+        #print("inside forward")
+        
+        speed,abss,steering,gyro = self.extract_sensor_values(observation,observation.shape[0])
+        #print(f'Speed : {speed[torch.argmax(speed,dim=1)]}')
+        
+        x = x.permute(0,3,1,2)
+        x = F.relu(self.pool(self.conv2_drop(self.conv1(x))))
+        x = F.relu(self.pool(self.conv2_drop(self.conv2(x))))
+        x = x.reshape(x.shape[0],-1)
+        #print(x)
+        #x = torch.cat((x,speed),1)
+        #x = torch.cat((x,gyro),1)
+        #print(x.shape)
+        x = F.relu(self.fc1(x))
+#        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return x
+             
 
 
     def actions_to_classes(self, actions):
@@ -34,27 +61,18 @@ class ClassificationNetwork(torch.nn.Module):
         actions:        python list of N torch.Tensors of size 3
         return          python list of N torch.Tensors of size number_of_classes
         """
-
-        # 9 classes of actions
-        number_of_classes = 9
-        actionMap = {
-            (0.0, 0.0, 0.0): 0,
-            (0.0, 0.5, 0.0): 1,
-            (-1.0, 0.5, 0.0): 2,
-            (-1.0, 0.0, 0.0): 3,
-            (-1.0, 0.0, 0.8): 4,
-            (0.0, 0.0, 0.8): 5,
-            (1.0, 0.0, 0.8): 6,
-            (1.0, 0.0, 0.0): 7,
-            (1.0, 0.5, 0.0): 8
-        }
-        res = []
-        for action in actions:
-            pos = actionMap[ tuple(action) ]
-            oneHotVector = torch.zeros(number_of_classes, dtype=torch.int8)
-            oneHotVector[pos] = 1
-            res.append(oneHotVector)
-        return res
+        actions_np = []
+        for i in actions:
+            actions_np.append(i.numpy())
+        self.values, inverse,count = np.unique(actions_np ,return_inverse=True, return_counts=True, axis=0)
+        onehot = np.eye(self.values.shape[0])[inverse]
+        print(count)
+        
+        class_tensor=[]
+        for item in onehot:
+            class_tensor.append(torch.tensor(item,dtype=torch.float32))
+            
+        return class_tensor
 
     def scores_to_action(self, scores):
         """
@@ -64,7 +82,15 @@ class ClassificationNetwork(torch.nn.Module):
         scores:         python list of torch.Tensors of size number_of_classes
         return          (float, float, float)
         """
-        pass
+        
+        #print(scores)
+        preds = torch.argmax(scores,dim=1)
+        #print(preds.shape)
+        class_labels = self.values[preds]
+        #print(class_labels)
+        
+        return class_labels
+        
 
     def extract_sensor_values(self, observation, batch_size):
         """
