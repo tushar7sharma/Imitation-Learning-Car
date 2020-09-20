@@ -11,7 +11,7 @@ def train(data_folder, trained_network_file):
     """
     Function for training the network.
     """
-    gpu = torch.device('cuda')
+    gpu =  torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     infer_action = ClassificationNetwork().to(gpu)
     optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-4)  #-4
     observations, actions = load_imitations(data_folder)
@@ -25,7 +25,7 @@ def train(data_folder, trained_network_file):
     
     nr_epochs = 300 # 400
     batch_size = 64
-    number_of_classes = 10 # needs to be changed
+    number_of_classes = 9 # needs to be changed
     start_time = time.time()
     
     for epoch in range(nr_epochs):
