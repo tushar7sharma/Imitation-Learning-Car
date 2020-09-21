@@ -23,7 +23,7 @@ def train(data_folder, trained_network_file):
     batches = [batch for batch in zip(observations,
                                       infer_action.actions_to_classes(actions))]
     
-    nr_epochs = 300 # 400
+    nr_epochs = 500 # 400
     batch_size = 64
     number_of_classes = 10 # needs to be changed
     start_time = time.time()

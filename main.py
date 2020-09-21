@@ -8,8 +8,8 @@ from training import train
 from imitations import record_imitations
 
 directory = "/home/shoumik/Desktop/EC500/HW1/Shoumik_imitation"
-trained_network_file = os.path.join(directory, 'data/train_version4.t7')
-imitations_folder = os.path.join(directory, 'data/bhasad')
+trained_network_file = os.path.join(directory, 'data/train_version6_speed_bhasad.t7')
+imitations_folder = os.path.join(directory, 'data/teacher')
 
 
 def evaluate():
@@ -23,7 +23,7 @@ def evaluate():
     device = torch.device(device)
     infer_action = infer_action.to(device)
 
-
+    mean_reward=0
     for episode in range(10):
         observation = env.reset()
 
@@ -37,8 +37,11 @@ def evaluate():
             observation, reward, done, info = env.step([steer, gas, brake])
             reward_per_episode += reward
 
-        print('episode %d \t reward %f' % (episode, reward_per_episode))
 
+        print('episode %d \t reward %f' % (episode, reward_per_episode))
+        mean_reward += reward_per_episode
+    
+    print(f'mean reward {mean_reward/10}')
 
 def calculate_score_for_leaderboard():
     """
