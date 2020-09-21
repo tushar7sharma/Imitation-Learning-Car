@@ -2,6 +2,10 @@ import os
 import numpy as np
 import gym
 from pyglet.window import key
+from os import listdir
+from os.path import isfile, join
+import numpy as np
+from torchvision.transforms.functional import hflip
 
 
 def load_imitations(data_folder):
@@ -16,7 +20,20 @@ def load_imitations(data_folder):
     observations:   python list of N numpy.ndarrays of size (96, 96, 3)
     actions:        python list of N numpy.ndarrays of size 3
     """
-    pass
+    onlyfiles = sorted([f for f in listdir(data_folder) if isfile(join(data_folder, f))])
+    observation = [np.load(data_folder + "/" + f) for f in onlyfiles if 'observation' in f]
+    action = [np.load(data_folder + "/" + f) for f in onlyfiles if 'action' in f]
+    return observation, action
+
+
+def load_imitations_with_flip(data_folder):
+    observation, action = load_imitations(data_folder)
+    observation_flip = []
+    for obs in observation:
+        observation_flip.append(np.moveaxis(np.flip(np.moveaxis(obs, -1, 0), axis=2), 0, -1))
+    observation.extend(observation_flip)
+    action.extend([x * np.array([-1.0, 1.0, 1.0]) if x[0] != 0 else x for x in action])
+    return observation, action
 
 
 def save_imitations(data_folder, actions, observations):
@@ -30,7 +47,11 @@ def save_imitations(data_folder, actions, observations):
     observations:   python list of N numpy.ndarrays of size (96, 96, 3)
     actions:        python list of N numpy.ndarrays of size 3
     """
-    pass
+    for i in range(actions):
+        with open(data_folder + 'observation_' + i + '.npy', 'w') as f:
+            np.save(f, observations[i])
+        with open(data_folder + 'action_' + i + '.npy', 'w') as f:
+            np.save(f, actions[i])
 
 
 class ControlStatus:

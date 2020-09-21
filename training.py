@@ -1,27 +1,27 @@
 import torch
 import random
 import time
-from network import ClassificationNetwork
-from imitations import load_imitations
+from network1 import ClassificationNetwork
+from imitations import load_imitations,load_imitations_with_flip
 
 
 def train(data_folder, trained_network_file):
     """
     Function for training the network.
     """
-    infer_action = ClassificationNetwork()
-    optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-2)
     observations, actions = load_imitations(data_folder)
-    observations = [torch.Tensor(observation) for observation in observations]
-    actions = [torch.Tensor(action) for action in actions]
+    infer_action = ClassificationNetwork(actions)
+    optimizer = torch.optim.Adam(infer_action.parameters(), lr=1e-2)
+    observations = [torch.Tensor(observation.tolist()) for observation in observations]
+    actions = [torch.Tensor(action.tolist()) for action in actions]
 
     batches = [batch for batch in zip(observations,
                                       infer_action.actions_to_classes(actions))]
     gpu = torch.device('cuda')
 
-    nr_epochs = 100
+    nr_epochs = 300
     batch_size = 64
-    number_of_classes = 0  # needs to be changed
+    number_of_classes = infer_action.num_classes  # needs to be changed
     start_time = time.time()
 
     for epoch in range(nr_epochs):
@@ -31,8 +31,8 @@ def train(data_folder, trained_network_file):
         batch_in = []
         batch_gt = []
         for batch_idx, batch in enumerate(batches):
-            batch_in.append(batch[0].to(gpu))
-            batch_gt.append(batch[1].to(gpu))
+            batch_in.append(batch[0])
+            batch_gt.append(batch[1])
 
             if (batch_idx + 1) % batch_size == 0 or batch_idx == len(batches) - 1:
                 batch_in = torch.reshape(torch.cat(batch_in, dim=0),
@@ -67,4 +67,17 @@ def cross_entropy_loss(batch_out, batch_gt):
     batch_gt:       torch.Tensor of size (batch_size, number_of_classes)
     return          float
     """
-    pass
+    loss = torch.nn.CrossEntropyLoss()
+    return loss(batch_out, torch.max(batch_gt, 1)[1])
+
+def logits_loss(batch_out, batch_gt):
+    """
+    Calculates the cross entropy loss between the prediction of the network and
+    the ground truth class for one batch.
+    batch_out:      torch.Tensor of size (batch_size, number_of_classes)
+    batch_gt:       torch.Tensor of size (batch_size, number_of_classes)
+    return          float
+    """
+    pos_weight = torch.ones([4])  # All weights are equal to 1
+    loss = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    return loss(batch_out, batch_gt)
