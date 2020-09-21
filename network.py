@@ -49,7 +49,6 @@ class ClassificationNetwork(torch.nn.Module):
         return x
              
 
-
     def actions_to_classes(self, actions):
         """
         1.1 c)
@@ -64,14 +63,15 @@ class ClassificationNetwork(torch.nn.Module):
         actions_np = []
         for i in actions:
             actions_np.append(i.numpy())
-        self.values, inverse,count = np.unique(actions_np ,return_inverse=True, return_counts=True, axis=0)
+        self.values, inverse, count = np.unique(
+            actions_np, return_inverse=True, return_counts=True, axis=0)
         onehot = np.eye(self.values.shape[0])[inverse]
-        print(count)
-        
-        class_tensor=[]
+        print("unique: " + str(count))
+
+        class_tensor = []
         for item in onehot:
-            class_tensor.append(torch.tensor(item,dtype=torch.float32))
-            
+            class_tensor.append(torch.tensor(item, dtype=torch.float32))
+
         return class_tensor
 
     def scores_to_action(self, scores):

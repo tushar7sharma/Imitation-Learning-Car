@@ -55,7 +55,15 @@ def save_imitations(data_folder, actions, observations):
     observations:   python list of N numpy.ndarrays of size (96, 96, 3)
     actions:        python list of N numpy.ndarrays of size 3
     """
-    pass
+    # pass
+    offset = 0
+    for i in range(len(actions)):
+        action_file_path = os.path.join(
+            data_folder, "action_recorded_" + "{0:0=5d}".format(offset + i))
+        observation_file_path = os.path.join(
+            data_folder, "observation_recorded_" + "{0:0=5d}".format(offset + i))
+        np.save(action_file_path, actions[i])
+        np.save(observation_file_path, observations[i])
 
 
 class ControlStatus:
@@ -75,10 +83,14 @@ class ControlStatus:
         if k == key.ESCAPE: self.quit = True
         if k == key.SPACE: self.stop = True
         if k == key.TAB: self.save = True
-        if k == key.LEFT: self.steer = -1.0
-        if k == key.RIGHT: self.steer = +1.0
-        if k == key.UP: self.accelerate = +0.5
-        if k == key.DOWN: self.brake = +0.8
+        # if k == key.LEFT: self.steer = -1.0
+        # if k == key.RIGHT: self.steer = +1.0
+        # if k == key.UP: self.accelerate = +0.5
+        # if k == key.DOWN: self.brake = +0.8
+        if k == key.LEFT: self.steer += -0.2
+        if k == key.RIGHT: self.steer += +0.2
+        if k == key.UP and self.accelerate < 0.1: self.accelerate += 0.1
+        if k == key.DOWN and self.brake < 0.1: self.brake += +0.1
 
     def key_release(self, k, mod):
         if k == key.LEFT and self.steer < 0.0: self.steer = 0.0
