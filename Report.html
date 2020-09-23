@@ -1,0 +1,453 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+</head>
+<body>
+<style>
+body { font-size: 13px; }
+</style>
+<h1 id="exercise-1-imitation-learning">Exercise 1 – Imitation Learning</h1>
+<p>Submitted by: Shoumik Majumdar and Shubham Arora</p>
+<p>The experiment - observation table is at the end of the report</p>
+<h2 id="network-design">1.1 Network design</h2>
+<h3 id="b-training">b) Training</h3>
+<blockquote>
+<p>Q. Why is is necessary to divide the data into batches?</p>
+</blockquote>
+<p>In most cases where we have large amounts of data for training a model, it is infeasible to feed all the data to the algorithm in one pass. This is due to size of dataset and memory limitations. Hence, data is divided into batches to make it feasible for training. (fit training data into computers memory)</p>
+<blockquote>
+<p>Q. What is an epoch?</p>
+</blockquote>
+<p>Epoch is a unit to describe when the entire dataset is passed forward and backward through the neural network exactly once.</p>
+<p>No of epochs is a hyperparameters that states how many times the learning algorithm will work through the entire dataset.</p>
+<blockquote>
+<p>Q. What do lines 43 to 48 do?</p>
+</blockquote>
+<p>Line 43 - 48 perform a forward pass with the input batch, calculate the cross entropy loss between the predicted and ground truth labels. Then the gradients are set to 0 so that new ones can be calculated for the next batch. loss.backward() computes the gradients for all parameters and optimizer.step() updates the weights using the gradients and learning rate.</p>
+<h3 id="c-classification-network">c) Classification Network</h3>
+<blockquote>
+<p>Q. Have a look at the actions provided by the expert imitations, there are three controls: steer, gas and brake. Which values do they take?</p>
+</blockquote>
+<p>In the default dataset, the following 9 classes were identified: actions : steer, gas, brake steer values: {0.0, 1.0, -1.0} gas values: {0.0, 0.5} brake values: {0.0, 0.8} 9 classes of actions action values: { 0, (0.0, 0.0, 0.0), no_op 1, (0.0, 0.5, 0.0), gas 2, (-1.0, 0.5, 0.0), gas_left 3, (-1.0, 0.0, 0.0), steer_left 4, (-1.0, 0.0, 0.8), brake_left 5, (0.0, 0.0, 0.8), brake 6, (1.0, 0.0, 0.8), brake_right 7, (1.0, 0.0, 0.0), steer_right 8, (1.0, 0.5, 0.0), gas_right }</p>
+<h3 id="e-forward-pass">e) Forward pass</h3>
+<blockquote>
+<p>Q. You can decide whether you want to work with all 3 color channels or convert them togray-scale beforehand. Motivate your choice briefly.</p>
+</blockquote>
+<p>We went ahead and trained with all 3 color channels. For all color channels, we got average score: 553 We chose to work with the default RGB image (all 3 channels) because working on 3 channels provides a steep contrast between the track and the grass.</p>
+<blockquote>
+<p>Q. Can you achieve better results when changing the hyper-parameters? Can you explain this?</p>
+</blockquote>
+<p>We changed the following hyperparameters: 1. Batch size: 2. Learning rate</p>
+<h3 id="f-imitations">f) Imitations</h3>
+<blockquote>
+<p>Q. What is ‘good’ training data?</p>
+</blockquote>
+<p>Good training data teaches the neural network to do the best possible action that expert would have done in the same situation, as it learns from the training data.</p>
+<blockquote>
+<p>Q. Is there any problem with only perfect imitations?</p>
+</blockquote>
+<p>Yes! By training on only perfect imitations, the neural net does not learn how to recover from bad or catastrophic situations. You can try to mitigate this a little with data augmentation techniques. e.g. image smoothing. However, you cannot create a lot of bad data, or data that shows how to recover from bad situations, because then it impacts the &quot;good&quot; performance of your system. The &quot;good&quot; performance in this case being lane keeping.</p>
+<h2 id="training-plots">Training plots</h2>
+<h3 id="default-dataset.-classification-model">1. Default dataset. Classification Model</h3>
+<div class="figure">
+<img src="teacher-dataset-classification.jpg" alt="Classification model on default dataset" />
+<p class="caption">Classification model on default dataset</p>
+</div>
+<h3 id="our-dataset.-classification-model">2. Our dataset. Classification Model</h3>
+<div class="figure">
+<img src="someGas-dataset-classification.jpg" alt="Classification model on our dataset" />
+<p class="caption">Classification model on our dataset</p>
+</div>
+<h2 id="network-improvements">1.1 Network improvements</h2>
+<h3 id="a-observations">a) Observations</h3>
+<blockquote>
+<p>Q. Look at the class method <code>extract_sensor_values</code> in <code>network.py</code>. What does it do?</p>
+</blockquote>
+<p>The method <code>extract_sensor_values</code> provides us the value of <code>speed</code>, <code>abs_sensors</code>, <code>gyroscope</code> and <code>steering</code> from the observation tensors. We get this observation tensor from the environment</p>
+<blockquote>
+<p>Q. Incorporate it into your network architecture. How does the performance change?</p>
+</blockquote>
+<p>We incorporated the speed into our network. However, it did not seem to affect performance in any way. I am not sure how adding the other sensor values would help as well.</p>
+<h3 id="b-multi-class-predictions">b) Multi class predictions</h3>
+<blockquote>
+<p>Q. compare the results to the previous classification approach.</p>
+</blockquote>
+<p>Multi-class approach was used to predict values for steer, acceleration and brakes independently of each other. <code>action_to_classes</code> and <code>scores_to_action</code> were modified to accommodate this approach. Sigmoid activation was used and Pytorch’s BCEWithLogitsLoss() method was used to calculate the loss. We got a worse result using the multi class aproach.</p>
+<p>This approach didn’t improve the performance. Though it is a multi-label problem, with no change in loss, network and Data, the model was learnt to predict the same classes as before but with different target values.</p>
+<h3 id="c-classification-vs.-regression">c) Classification vs. regression</h3>
+<blockquote>
+<p>Q. Formulate the current problem as a regression network. Whichloss function is appropriate?</p>
+</blockquote>
+<p>For formulating the problem as a regression network, we removed all non-linear activations at the end of the network and used a Min-Square-Error Loss function (MSELoss()). action_to_classes and scores_to_action were modified to accommodate this approach.</p>
+<blockquote>
+<p>Q. What are the advantages / drawbacks compared to the classification networks?</p>
+</blockquote>
+<p>The regression approach has the following potential advantages: As a regression network outputs a continuum of values for all the car parameters, it closely models how a car in the real-world is controlled.</p>
+<!-- and the following drawbacks:
+... -->
+<p>Again, the regression network gives us a worse result than the classification approach.</p>
+<blockquote>
+<p>Q. Is it reasonable to use a regression approach given our training data?</p>
+</blockquote>
+<p>We believe that the culprit here is the default dataset we are given. It is more reasonable to expect a better performance in a regression-based network if the training data contains a continuous range of values for all the parameters.</p>
+<p>This change proved to be tedious and we couldn’t obtain a “good enough” dataset for regression .</p>
+<p>Note: For training the final model, we actually changed the top speed, steering values while recording our dataset. This served 2 major purposes: 1. Reducing the top speed of the car makes it easier to control (at least for us) 2. While taking turns (steering), we reduce the acceleration value to <code>0.2</code>. Again, this makes it easier for us to control the car, and create better datasets. Also, this prevented the car skidding / spinning on the track.</p>
+<h3 id="d-data-augmentation">d) Data augmentation</h3>
+<blockquote>
+<p>Q. Investigate two ways to create more training data with synthetically modified data by augmenting the (observation, action) - pairs the simulator provides.</p>
+</blockquote>
+<p>We used 2 approaches: 1. Image flipping - we flipped the observations along the vertical axis to obtain a mirrored observation. Actions were changed accordingly to convert right-steer to left and vice-versa.</p>
+<ol start="2" style="list-style-type: decimal">
+<li>We recorded our own observations by using the teach method. We created a bigger dataset for training. We used the techiques as described above. Here's the sample in code that we changed.</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> key_press(<span class="va">self</span>, k, mod):
+    <span class="cf">if</span> k <span class="op">==</span> key.ESCAPE: <span class="va">self</span>.quit <span class="op">=</span> <span class="va">True</span>
+    <span class="cf">if</span> k <span class="op">==</span> key.SPACE: <span class="va">self</span>.stop <span class="op">=</span> <span class="va">True</span>
+    <span class="cf">if</span> k <span class="op">==</span> key.TAB: <span class="va">self</span>.save <span class="op">=</span> <span class="va">True</span>
+    <span class="cf">if</span> k <span class="op">==</span> key.LEFT:
+        <span class="va">self</span>.steer <span class="op">=</span> <span class="fl">-0.5</span>
+        <span class="va">self</span>.accelerate <span class="op">=</span> <span class="fl">0.1</span>
+    <span class="cf">if</span> k <span class="op">==</span> key.RIGHT:
+        <span class="va">self</span>.steer <span class="op">=</span> <span class="fl">+0.5</span>
+        <span class="va">self</span>.accelerate <span class="op">=</span> <span class="fl">0.1</span>
+    <span class="cf">if</span> k <span class="op">==</span> key.UP: <span class="va">self</span>.accelerate <span class="op">=</span> <span class="fl">+0.7</span>
+    <span class="cf">if</span> k <span class="op">==</span> key.A: <span class="va">self</span>.brake <span class="op">=</span> <span class="fl">+0.8</span></code></pre></div>
+<blockquote>
+<p>Q. Does the overall performance change?</p>
+</blockquote>
+<p>Yes! We got a much better performance by creating our own data set. Average score increased from around 380 to 553!</p>
+<h3 id="e-fine---tuning">e) Fine - tuning</h3>
+<blockquote>
+<p>Q. What other tricks can be used to improve the performance of the network? Please try atleast two ideas, explain your motivation for trying them and whether they improved the result.</p>
+</blockquote>
+<p>We splitted our custom dataset into a training-validation (70-30) set. We sampled the data by using sklearn’s <code>StratifiedShuffleSplit</code> method to make sure that each class is proportionately represented in both training and validation sets.</p>
+<h2 id="observations">Observations</h2>
+<h3 id="classification">Classification</h3>
+<table style="width:100%;">
+<colgroup>
+<col width="5%" />
+<col width="8%" />
+<col width="9%" />
+<col width="4%" />
+<col width="11%" />
+<col width="5%" />
+<col width="8%" />
+<col width="12%" />
+<col width="18%" />
+<col width="15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dataset</th>
+<th>Training Loss</th>
+<th>Validation Loss</th>
+<th>Epochs</th>
+<th>Batch Normalization</th>
+<th>Dropout</th>
+<th>Learning Rate</th>
+<th>Network Architecture</th>
+<th>Description</th>
+<th>Reward</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>No</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Teacher</td>
+<td>1.07</td>
+<td>0.48</td>
+<td>100</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td>(64,9)</td>
+<td>64 nodes in the Linear Layer</td>
+<td>408 (6 successful episodes)</td>
+</tr>
+<tr class="odd">
+<td>Teacher</td>
+<td>0.91</td>
+<td>0.47</td>
+<td>100</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td>(128,9)</td>
+<td>128 nodes in the Linear Layer</td>
+<td>438(10 successful episodes)</td>
+</tr>
+<tr class="even">
+<td>Teacher</td>
+<td>0.69</td>
+<td>0.54</td>
+<td>100</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td>(128 +7, 9)</td>
+<td>128 +7 nodes in the Linear Layer</td>
+<td>180(5 successul episodes)</td>
+</tr>
+<tr class="odd">
+<td>Some_gas</td>
+<td>4.37</td>
+<td>5.36</td>
+<td>200</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td>(128,18)</td>
+<td>128 nodes in the Linear Layer</td>
+<td>553(8 successful episodes)</td>
+</tr>
+<tr class="even">
+<td>Some_gas</td>
+<td>3.01</td>
+<td>5.05</td>
+<td>200</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td>(256,18)</td>
+<td>256 nodes in the Linear Layer</td>
+<td>468(8 successful episodes)</td>
+</tr>
+<tr class="odd">
+<td>Some_gas</td>
+<td>6.41</td>
+<td>5.28</td>
+<td>200</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td>(64,18)</td>
+<td>64 nodes in the Linear Layer</td>
+<td>479(8 successful episodes)</td>
+</tr>
+<tr class="even">
+<td>Some_gas</td>
+<td>0.292</td>
+<td>12.02</td>
+<td>200</td>
+<td>Yes</td>
+<td>No</td>
+<td>1 e-4</td>
+<td>(64,18)</td>
+<td>64 nodes in the Linear Layer</td>
+<td>460</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="multi-label">Multi-Label</h3>
+<table>
+<colgroup>
+<col width="5%" />
+<col width="8%" />
+<col width="9%" />
+<col width="4%" />
+<col width="11%" />
+<col width="5%" />
+<col width="8%" />
+<col width="12%" />
+<col width="16%" />
+<col width="17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dataset</th>
+<th>Training Loss</th>
+<th>Validation Loss</th>
+<th>Epochs</th>
+<th>Batch Normalisation</th>
+<th>Dropout</th>
+<th>Learning Rate</th>
+<th>Network Architecture</th>
+<th>Description</th>
+<th>Reward</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>No</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Teacher</td>
+<td>0.36</td>
+<td>0.661</td>
+<td>200</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td>(512,4)</td>
+<td>512 nodes in the Linear Layer</td>
+<td>321.37 (8 successful episodes)</td>
+</tr>
+<tr class="odd">
+<td>Teacher</td>
+<td>0.4247</td>
+<td>0.6394</td>
+<td>200</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td>(512 + 7,4)</td>
+<td>512 nodes + sensor inputs</td>
+<td>241 (7 successful episodes)</td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="regression">Regression</h3>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="10%" />
+<col width="12%" />
+<col width="6%" />
+<col width="14%" />
+<col width="6%" />
+<col width="10%" />
+<col width="15%" />
+<col width="9%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dataset</th>
+<th>Training Loss</th>
+<th>Validation Loss</th>
+<th>Epochs</th>
+<th>Batch Normalization</th>
+<th>Dropout</th>
+<th>Learning Rate</th>
+<th>Network Architecture</th>
+<th>Description</th>
+<th>Reward</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Teacher</td>
+<td>1.6</td>
+<td>0.772</td>
+<td>100</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td></td>
+<td></td>
+<td>9</td>
+</tr>
+<tr class="odd">
+<td>Teacher</td>
+<td>1.81</td>
+<td>0.664</td>
+<td>100</td>
+<td>No</td>
+<td>Yes</td>
+<td>1 e-4</td>
+<td></td>
+<td>With flip</td>
+<td>22</td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<!-- ### Results databse
+1. https://docs.google.com/spreadsheets/d/1XHRnonVg8kMP7LyJj63gD5dRvxGCukGGwnLHu3KPdUw/edit#gid=0 -->
+<!-- ## References
+1. https://machinelearningmastery.com/difference-between-a-batch-and-an-epoch/
+2. https://docs.paperspace.com/machine-learning/wiki/epoch -->
+<!-- ## Tools used
+1. pandoc
+2. https://thisdavej.com/copy-table-in-excel-and-paste-as-a-markdown-table/ -->
+</body>
+</html>
