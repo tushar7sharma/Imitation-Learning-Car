@@ -56,7 +56,7 @@ def save_imitations(data_folder, actions, observations):
     actions:        python list of N numpy.ndarrays of size 3
     """
     # pass
-    offset = 0
+    offset = 15726 # 8200
     for i in range(len(actions)):
         action_file_path = os.path.join(
             data_folder, "action_recorded_" + "{0:0=5d}".format(offset + i))
@@ -64,6 +64,7 @@ def save_imitations(data_folder, actions, observations):
             data_folder, "observation_recorded_" + "{0:0=5d}".format(offset + i))
         np.save(action_file_path, actions[i])
         np.save(observation_file_path, observations[i])
+    print("new offset : " , offset + len(actions))
 
 
 class ControlStatus:
@@ -83,20 +84,24 @@ class ControlStatus:
         if k == key.ESCAPE: self.quit = True
         if k == key.SPACE: self.stop = True
         if k == key.TAB: self.save = True
-        # if k == key.LEFT: self.steer = -1.0
-        # if k == key.RIGHT: self.steer = +1.0
-        # if k == key.UP: self.accelerate = +0.5
-        # if k == key.DOWN: self.brake = +0.8
-        if k == key.LEFT: self.steer += -0.2
-        if k == key.RIGHT: self.steer += +0.2
-        if k == key.UP and self.accelerate < 0.1: self.accelerate += 0.1
-        if k == key.DOWN and self.brake < 0.1: self.brake += +0.1
+        if k == key.LEFT:
+            self.steer = -0.5
+            self.accelerate = 0.1
+        if k == key.RIGHT:
+            self.steer = +0.5
+            self.accelerate = 0.1
+        if k == key.UP: self.accelerate = +0.7
+        if k == key.A: self.brake = +0.8
+        # if k == key.LEFT: self.steer += -0.3
+        # if k == key.RIGHT: self.steer += +0.3
+        # if k == key.UP: self.accelerate += 0.1
+        # if k == key.DOWN: self.brake += +0.1
 
     def key_release(self, k, mod):
         if k == key.LEFT and self.steer < 0.0: self.steer = 0.0
         if k == key.RIGHT and self.steer > 0.0: self.steer = 0.0
         if k == key.UP: self.accelerate = 0.0
-        if k == key.DOWN: self.brake = 0.0
+        if k == key.A: self.brake = 0.0
 
 
 def record_imitations(imitations_folder):
@@ -142,6 +147,7 @@ def record_imitations(imitations_folder):
 
         if status.save:
             save_imitations(imitations_folder, actions, observations)
+            print(actions)
             status.save = False
 
         status.stop = False
